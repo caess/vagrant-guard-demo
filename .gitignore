@@ -4,3 +4,4 @@ iso/*
 vendor/*
 .vagrant
 .*.swp
+.vagrant_last_provisioned

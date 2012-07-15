@@ -3,7 +3,7 @@ require 'guard/cucumber'
 # This block simply calls vagrant provision via a shell
 # And shows the output
 def vagrant_provision
-  IO.popen("vagrant provision && rake validate") do |output|
+  IO.popen("vagrant provision && touch .vagrant_last_provisioned") do |output|
     while line = output.gets do
       puts line
     end
@@ -13,16 +13,16 @@ end
 # So determine if all tests (both rspec and cucumber have been passed)
 # This is used to only invoke the vagrant_provision if all test show green
 def all_tests_pass
-  cucumber_guard = ::Guard.guards({ :name => 'cucumber', :group => 'tests'}).first
+  cucumber_guard = ::Guard.guards({ :name => 'cucumber', :group => 'puppet_tests'}).first
   cucumber_passed = cucumber_guard.instance_variable_get("@failed_paths").empty?
-  rspec_guard = ::Guard.guards({ :name => 'rspec', :group => 'tests'}).first
+  rspec_guard = ::Guard.guards({ :name => 'rspec', :group => 'puppet_tests'}).first
   rspec_passed = rspec_guard.instance_variable_get("@failed_paths").empty?
   return rspec_passed && cucumber_passed
 end
 
 
 # Actual guard section
-group :tests do
+group :puppet_tests do
 
   # Run rspec-puppet tests
   # --format documentation : for better output
@@ -59,5 +59,18 @@ group :tests do
       vagrant_provision if all_tests_pass
     end
   end
+end
 
+group :vm_tests do
+  # Run cucumber tests on the VM(s)
+  guard :cucumber, :cli => "-s --strict --format pretty" do
+    # Match any .rb file (but be careful not include and dot-temporary files)
+    watch(%r{^features/[^.]*\.rb$}) { "features" }
+
+    # Feature files are monitored as well
+    watch(%r{^features/[^.]*.feature})
+    
+    # Watch to see if the VM(s) have been reprovisioned
+    watch('.vagrant_last_provisioned')
+  end
 end
