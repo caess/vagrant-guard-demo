@@ -1,5 +1,8 @@
 require 'guard/cucumber'
 
+class ::Guard::VmCucumber < ::Guard::Cucumber
+end
+
 # This block simply calls vagrant provision via a shell
 # And shows the output
 def vagrant_provision
@@ -52,7 +55,7 @@ group :puppet_tests do
     watch(%r{^puppet-repo/features/[^.]*.feature})
 
     # This is only invoked on changes, not at initial startup
-    callback(:start_end) do
+    callback(:start_end) do |guard_class, event|
       vagrant_provision if all_tests_pass
     end
     callback(:run_on_change_end) do
@@ -63,7 +66,7 @@ end
 
 group :vm_tests do
   # Run cucumber tests on the VM(s)
-  guard :cucumber, :cli => "-s --strict --format pretty" do
+  guard :vm_cucumber, :cli => "-s --strict --format pretty" do
     # Match any .rb file (but be careful not include and dot-temporary files)
     watch(%r{^features/[^.]*\.rb$}) { "features" }
 
