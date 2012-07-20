@@ -104,6 +104,6 @@ group :vm_tests do
     watch(%r{^features/[^.]*.feature})
     
     # Watch to see if the VM(s) have been reprovisioned
-    watch('.vagrant_last_provisioned')
+    watch('.vagrant_last_provisioned') { "features" }
   end
 end
