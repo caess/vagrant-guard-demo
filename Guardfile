@@ -85,7 +85,7 @@ group :puppet_tests do
     watch(%r{^puppet-repo/features/[^.]*.feature})
 
     # This is only invoked on changes, not at initial startup
-    callback(:start_end) do |guard_class, event|
+    callback(:start_end) do
       vagrant_provision if all_tests_pass
     end
     callback(:run_on_change_end) do
