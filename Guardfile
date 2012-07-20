@@ -1,15 +1,30 @@
 require 'guard/cucumber'
+require "vagrant"
+require "fileutils"
 
 class ::Guard::VmCucumber < ::Guard::Cucumber
+end
+
+def setup_vagrant
+  @env = Vagrant::Environment.new(:ui_class => Vagrant::UI::Colored)
+  @env.vms.each do |name, vm|
+    if vm.state == :running
+      vm.provision
+    else
+      vm.up
+    end
+  end
 end
 
 # This block simply calls vagrant provision via a shell
 # And shows the output
 def vagrant_provision
-  IO.popen("vagrant provision && touch .vagrant_last_provisioned") do |output|
-    while line = output.gets do
-      puts line
-    end
+  if @env
+    puts "Running vagrant provision."
+    @env.cli("provision") && FileUtils.touch('.vagrant_last_provisioned')
+  else
+    puts "Setting up vagrant environment."
+    setup_vagrant && FileUtils.touch('.vagrant_last_provisioned')
   end
 end
 
